@@ -18,6 +18,7 @@ export class Ng2SmartTableComponent implements OnChanges {
 
   @Input() source: any;
   @Input() settings: Object = {};
+  @Input() remoteAddNew: EventEmitter<any>;
 
   @Output() rowSelect = new EventEmitter<any>();
   @Output() userRowSelect = new EventEmitter<any>();
@@ -177,6 +178,11 @@ export class Ng2SmartTableComponent implements OnChanges {
     this.source = this.prepareSource();
     this.grid = new Grid(this.source, this.prepareSettings());
     this.grid.onSelectRow().subscribe((row) => this.emitSelectRow(row));
+    if (this.remoteAddNew) {
+      this.remoteAddNew.subscribe( () => {
+        this.grid.createFormShown = true;
+      });
+    }
   }
 
   prepareSource(): DataSource {
