@@ -1,4 +1,7 @@
-import { Component, Input, Output, SimpleChange, EventEmitter, OnChanges } from '@angular/core';
+import {
+  Component, Input, Output, SimpleChange, EventEmitter, OnChanges, HostListener,
+  ElementRef
+} from '@angular/core';
 
 import { Grid } from './lib/grid';
 import { DataSource } from './lib/data-source/data-source';
@@ -85,6 +88,8 @@ export class Ng2SmartTableComponent implements OnChanges {
 
   isAllSelected: boolean = false;
 
+  constructor(private eRef: ElementRef) {}
+
   ngOnChanges(changes: { [propertyName: string]: SimpleChange }) {
     if (this.grid) {
       if (changes['settings']) {
@@ -114,10 +119,30 @@ export class Ng2SmartTableComponent implements OnChanges {
   }
 
   onUserSelectRow(row: Row) {
-    if (this.grid.getSetting('selectMode') !== 'multi') {
+    if (this.grid.getSetting('mode') === 'click-to-edit') {
+      this.grid.getRows().forEach( row => row.isInEditing ? this.grid.save( row, this.createConfirm ) : null);
+      // set editing mode a bit later so that document click handler is called correctly
+      // TODO: focus clicked cell editor
+      setTimeout( () => row.isInEditing = true );
+
+    } else if (this.grid.getSetting('selectMode') !== 'multi') {
       this.grid.selectRow(row);
       this.emitUserSelectRow(row);
       this.emitSelectRow(row);
+
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  submitOpenEditor(event: Event) {
+    if (this.grid.getSetting('closeEditorOnClick', false) && !this.eRef.nativeElement.contains(event.target)) {
+      // if an existing row was edited
+      this.grid.getRows().forEach( row => row.isInEditing ? this.grid.save( row, this.createConfirm ) : null);
+
+      // if new row was added
+      if (this.grid.createFormShown) {
+        this.grid.create(this.grid.getNewRow(), this.createConfirm);
+      }
     }
   }
 

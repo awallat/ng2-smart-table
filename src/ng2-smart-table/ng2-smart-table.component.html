@@ -1,6 +1,6 @@
 <table [id]="tableId" [ngClass]="tableClass">
 
-  <thead ng2-st-thead *ngIf="!isHideHeader || !isHideSubHeader"
+  <thead ng2-st-thead *ngIf="!isHideHeader || !isHideSubHeader || grid.createFormShown"
                       [grid]="grid"
                       [isAllSelected]="isAllSelected"
                       [source]="source"
